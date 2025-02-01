@@ -1,0 +1,34 @@
+name: Manual Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  java_build:
+    strategy:
+      matrix:
+        java_version:
+          - 17
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+           
+      - name: Set up JDK ${{ matrix.java_version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java_version }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build with JDK ${{ matrix.java_version }}
+        run: |
+          ## compile only
+          cd content-retrievers/langchain4j-community-lucene
+          
+          ## compile and verify javadocs on ALL modules
+          mvn -B -U -T8C test javadoc:aggregate \
+            --fail-at-end
+          
+          ## run tests for some modules
+          mvn -B -U verify \
+              --fail-at-end
